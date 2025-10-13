@@ -5,10 +5,13 @@ import cors from 'cors';
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import { env } from './config/env';
+import qs from "qs";
+
 import rateLimit from 'express-rate-limit';
 import authRouter from './routes/auth.route';
 import segmentRouter from './routes/segment.route';
 import customerRouter from './routes/customer.route';
+import policyRouter from './routes/policy.route';
 
 
 const app = express()
@@ -45,6 +48,8 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(morgan('dev'))
 
+//Enable nested query parameter parsing safely in TypeScript
+app.set("query parser", (str: string) => qs.parse(str));
 
 app.get("/",(request : Request, response : Response) =>{
     return response.status(200).json({
@@ -57,7 +62,7 @@ app.get("/",(request : Request, response : Response) =>{
 app.use("/api/auth", authRouter); 
 app.use("/api/segment", segmentRouter); 
 app.use("/api/customer", customerRouter); 
-
+app.use("/api/policy", policyRouter)
 
 
 export default app;

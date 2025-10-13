@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import SegmentModel from "../models/segment.mode";
+import CustomerModel from "../models/customer.model";
 
 // Create a new segment
 export const createSegment = async (req: Request, res: Response) => {
@@ -97,37 +98,55 @@ export const updateSegment = async (req: Request, res: Response) => {
 };
 
 
-// // Get customers in a segment
-// export const getSegmentCustomers = async (req: Request, res: Response) => {
-//     try {
-//         const { segmentId } = req.params;
+// Get customers in a segment (with pagination and search by customer name/email)
+export const getSegmentCustomers = async (req: Request, res: Response) => {
+    try {
+        const { segmentId } = req.params;
+        const { page = 1, limit = 10, search = "" } = req.query;
 
-//         const segment = await SegmentModel.findById(segmentId).populate("customers", "name email segment");
-//         if (!segment) {
-//             return res.status(404).json({ success: false, message: "Segment not found" });
-//         }
+        // Find the segment and only get the customer ObjectIds array
+        const segment = await SegmentModel.findById(segmentId).select("customers");
+        if (!segment) {
+            return res.status(404).json({ success: false, message: "Segment not found" });
+        }
 
-//         return res.status(200).json({ success: true, customers: segment.customers });
-//     } catch (error: any) {
-//         console.error("Get Segment Customers Error:", error);
-//         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
-//     }
-// };
+        // Build search filter for customer
+        let customerFilter: any = {
+            _id: { $in: segment.customers }
+        };
 
+        if (search && typeof search === "string") {
+            customerFilter.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } }
+            ];
+        }
 
-// // Delete a segment
-// export const deleteSegment = async (req: Request, res: Response) => {
-//     try {
-//         const { segmentId } = req.params;
+        // Pagination variables
+        const pageNumber = parseInt(page as string, 10) || 1;
+        const pageSize = parseInt(limit as string, 10) || 10;
+        const skip = (pageNumber - 1) * pageSize;
 
-//         const segment = await SegmentModel.findByIdAndDelete(segmentId);
-//         if (!segment) {
-//             return res.status(404).json({ success: false, message: "Segment not found" });
-//         }
+        const [customers, total] = await Promise.all([
+            CustomerModel.find(customerFilter)
+                .select("name email segment")
+                .skip(skip)
+                .limit(pageSize)
+                .lean(),
+            CustomerModel.countDocuments(customerFilter)
+        ]);
 
-//         return res.status(200).json({ success: true, message: "Segment deleted successfully" });
-//     } catch (error: any) {
-//         console.error("Delete Segment Error:", error);
-//         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
-//     }
-// };
+        return res.status(200).json({
+            success: true,
+            customers,
+            page: pageNumber,
+            limit: pageSize,
+            totalItems: total,
+            totalPages: Math.ceil(total / pageSize)
+        });
+    } catch (error: any) {
+        console.error("Get Segment Customers Error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
+
