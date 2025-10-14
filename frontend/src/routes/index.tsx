@@ -7,6 +7,7 @@ import DashboardLayout from '../layout/DashboardLayout';
 import CustomerPage from '../pages/customer/CustomerPage';
 import PolicyPage from '../pages/policy/PolicyPage';
 import CustomerSegmentPage from '../pages/segment/CustomerSegment';
+import CreateCustomer from '../pages/customer/create/CreateCustomer';
 
 // To have type-safe and error-free routing with nested layouts, prefer using `element` and JSX over `Component` with props.
 // This approach matches RouteObject typings in react-router-dom.
@@ -34,14 +35,23 @@ const routes = [
             path: '',
             element: <DashboardPage />,
           },
+
+          //Customer section
           {
             path: 'customer',
             element: <CustomerPage />,
           },
           {
+            path: 'customer/create',
+            element: <CreateCustomer/>,
+          },
+
+          //Policy section          
+          {
             path: 'policy',
             element: <PolicyPage />,
           },
+          
           {
             path: 'segment',
             element: <CustomerSegmentPage />,

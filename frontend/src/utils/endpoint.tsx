@@ -3,5 +3,6 @@ export const endpoints = {
     logout : "/auth/logout",
     user : "/auth/user",
     segment : "/segment",
-    segmentWiseCustomer : (id : string)=> `/segment/customer/${id}`
+    segmentWiseCustomer : (id : string)=> `/segment/customer/${id}`,
+    customer : "/customer"
 }

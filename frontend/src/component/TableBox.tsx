@@ -8,6 +8,8 @@ import {
   TableBody,
   Paper,
   TablePagination,
+  Typography,
+  Box,
 } from '@mui/material';
 
 export interface TableColumn<T = any> {
@@ -61,50 +63,73 @@ export default function TableBox<T = any>({
     typeof onPageChange === 'function' &&
     typeof onPageSizeChange === 'function';
 
+  const noData = !data || data.length === 0;
+
   return (
-    <TableContainer
-      component={Paper}
-      sx={{ width: '100%', overflowX: 'auto',}}
-    >
-      <Table sx={{ minWidth }}>
-        <TableHead>
-          <TableRow>
-            {columns?.map((col) => (
-              <TableCell
-                key={String(col.field)}
-                align={col.align || 'left'}
-                sx={{
-                  fontWeight: 600,
-                  ...(col.width ? { width: col.width } : {})
-                }}
-              >
-                {col.headerName}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data?.map((row, rowIdx) => (
-            <TableRow key={rowIdx}>
+    <>
+      <TableContainer
+        component={Paper}
+        sx={{ width: '100%', overflowX: 'auto', }}
+      >
+        <Table sx={{ minWidth }}>
+          <TableHead>
+            <TableRow>
               {columns?.map((col) => (
                 <TableCell
                   key={String(col.field)}
                   align={col.align || 'left'}
+                  sx={{
+                    fontWeight: 600,
+                    ...(col.width ? { width: col.width } : {}),
+                    whiteSpace: 'nowrap'
+                  }}
                 >
-                  {col.renderCell
-                    ? col.renderCell(row, rowIdx)
-                    : // Works for basic object fields (including string path), for more complex, use renderCell
-                      String(
-                        typeof col.field === 'string'
-                          ? getValue(row, col.field)
-                          : row[col.field as keyof typeof row] ?? ''
-                      )}
+                  {col.headerName}
                 </TableCell>
               ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {noData ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  align="center"
+                  sx={{ py: 4 }}
+                >
+                  <Box>
+                    <Typography color="text.secondary">
+                      No data found
+                    </Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : (
+              data?.map((row, rowIdx) => (
+                <TableRow key={rowIdx}>
+                  {columns?.map((col) => (
+                    <TableCell
+                      key={String(col.field)}
+                      align={col.align || 'left'}
+                      sx={{
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {col.renderCell
+                        ? col.renderCell(row, rowIdx)
+                        : String(
+                          typeof col.field === 'string'
+                            ? getValue(row, col.field)
+                            : row[col.field as keyof typeof row] ?? ''
+                        )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
       {hasPagination && (
         <TablePagination
           component="div"
@@ -119,7 +144,7 @@ export default function TableBox<T = any>({
           rowsPerPageOptions={[5, 10, 25, 50, 100]}
         />
       )}
-    </TableContainer>
+    </>
   );
 }
 

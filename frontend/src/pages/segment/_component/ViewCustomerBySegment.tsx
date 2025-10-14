@@ -170,6 +170,7 @@ export default function ViewCustomerBySegment({
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        margin : 0
                     }}
                 >
                     <IconEye />

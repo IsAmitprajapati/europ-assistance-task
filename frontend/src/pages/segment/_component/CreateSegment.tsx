@@ -74,7 +74,7 @@ export default function CreateSegment({ onCreated }: { onCreated?: () => void })
   return (
     <>
       <Button variant="contained" onClick={handleOpen}>
-        Create Segment
+    Create Segment
       </Button>
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <DialogTitle>Create Segment</DialogTitle>

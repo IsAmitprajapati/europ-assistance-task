@@ -64,7 +64,16 @@ export default function Sidebar() {
 
             <List>
                 {sidebarItems.map((item) => {
-                    const isActive = location.pathname === item.to;
+                    // Determine active: if both '/dashboard' and the item's "field" (from 'to') are present in the URL.
+                    // For root dashboard, match exactly '/dashboard'
+                    let isActive = false;
+                    if (item.to === '/dashboard') {
+                        isActive = location.pathname === '/dashboard';
+                    } else {
+                        // item.to should be like '/dashboard/customer', check if location.pathname starts with that
+                        isActive = location.pathname.startsWith(item.to);
+                    }
+                    
                     return (
                         <ListItem key={item.label} disablePadding>
                             <ListItemButton
