@@ -127,3 +127,46 @@ export const loginUser = async (request: Request, response: Response) => {
         });
     }
 };
+
+export const getCurrentUser = async (request: Request, response: Response) => {
+    try {
+        const userId = request.userId
+
+        const user = await UserModel.findById(userId)
+
+        return response.status(200).json({
+            message : "Get current user details",
+            data : user,
+            success : true
+        })
+    } catch (error : any) {
+        return response.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error?.message,
+        });
+    }
+}
+
+
+export const logout = async (request: Request, response: Response) => {
+    try {
+
+        response.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "lax",
+        });
+        return response.status(200).json({
+            success: true,
+            message: "Logged out successfully",
+        });
+        
+    } catch (error: any) {
+        return response.status(500).json({
+            success: false,
+            message: "Failed to logout",
+            error: error.message,
+        });
+    }
+}

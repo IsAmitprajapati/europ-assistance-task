@@ -359,7 +359,7 @@ export const getCustomerList = async (req: Request, res: Response) => {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      customers,
+      data : customers,
     });
   } catch (error: any) {
     console.error("Get Customer List Error:", error);

@@ -38,7 +38,7 @@ const corsOptions: cors.CorsOptions = {
 // Rate Limiting Middleware
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // time frame = 15 minutes
-    max: 100,                 // max requests = 100 per IP in that time frame
+    max: 200,                 // max requests = 200 per IP in that time frame
 });
 
 

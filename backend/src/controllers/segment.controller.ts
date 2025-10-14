@@ -38,11 +38,18 @@ export const getAllSegments = async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;  // default page 1
         const limit = parseInt(req.query.limit as string) || 10; // default 10 items per page
         const skip = (page - 1) * limit;
-
+        
+        //for search 
+        const search = req?.query?.search as string;
+        const searchRegex = new RegExp(search, "i");
+                    
+        const query = {
+            name : searchRegex
+        }
 
         const [segments, total] = await Promise.all([
             //data (.populate("customers", "name email segment")) for all the user name and password
-            SegmentModel.find()
+            SegmentModel.find(query)
                 .skip(skip)
                 .limit(limit)
                 .sort({ createdAt: -1 }),
@@ -57,7 +64,7 @@ export const getAllSegments = async (req: Request, res: Response) => {
             limit,
             totalPages: Math.ceil(total / limit),
             totalItems: total,
-            segments,
+            data : segments,
         });
     } catch (error: any) {
         console.error("Get All Segments Error:", error);
@@ -138,7 +145,7 @@ export const getSegmentCustomers = async (req: Request, res: Response) => {
 
         return res.status(200).json({
             success: true,
-            customers,
+            data : customers,
             page: pageNumber,
             limit: pageSize,
             totalItems: total,
