@@ -18,6 +18,7 @@ import api from "../../../utils/Axios";
 import { endpoints } from "../../../utils/endpoint";
 import type { AxiosResponse } from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 // API endpoints
 const API_CREATE = endpoints.customer; // POST
@@ -281,7 +282,8 @@ export default function CreateUpdateCustomer({ customerId }: ICreateUpdateCustom
                 navigate("/dashboard/customer")
             }
         } catch (err: any) {
-            setErrors({ name: err.message || "An error occurred" });
+            toast.error(err?.response?.data?.message || err?.message)
+            // setErrors({ name: err.message || "An error occurred" });
         } finally {
             setLoading(false);
         }

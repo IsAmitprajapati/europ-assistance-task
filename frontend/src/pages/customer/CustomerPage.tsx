@@ -67,6 +67,7 @@ export default function CustomerPage() {
         // eslint-disable-next-line
     }, [page, limit, search]);
 
+    
     // Refetch data when URL (location.search) changes
     useEffect(() => {
         const effectiveQuery = queryString.parse(location.search);
