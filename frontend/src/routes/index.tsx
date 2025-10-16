@@ -8,6 +8,7 @@ import CustomerPage from '../pages/customer/CustomerPage';
 import PolicyPage from '../pages/policy/PolicyPage';
 import CustomerSegmentPage from '../pages/segment/CustomerSegment';
 import CreateCustomer from '../pages/customer/create/CreateCustomer';
+import Home from '../pages/Home/Home';
 
 // To have type-safe and error-free routing with nested layouts, prefer using `element` and JSX over `Component` with props.
 // This approach matches RouteObject typings in react-router-dom.
@@ -17,6 +18,10 @@ const routes = [
     path: '/',
     element: <App />,
     children: [
+      {
+        path: '',
+        element: <Home/>,
+      },
       {
         path: 'auth',
         element: <AuthLayout />,

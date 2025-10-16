@@ -4,14 +4,13 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { useProvider } from "../context/Provider";
 import { useEffect } from "react";
-import ProtectedRoutes from "../component/ProtectedRoutes";
 
 export default function AuthLayout() {
     const navigate = useNavigate()
     const { user, globalLoading } = useProvider()
 
     useEffect(() => {
-        if (!globalLoading && !user) {
+        if (!globalLoading && user) {
             navigate("/dashboard")
         }
     }, [user, globalLoading]);
@@ -33,7 +32,6 @@ export default function AuthLayout() {
                     <Outlet />
                 </Paper>
             </Box>
-            {/* <ProtectedRoutes /> */}
         </>
     );
 }

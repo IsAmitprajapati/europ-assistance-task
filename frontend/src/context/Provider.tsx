@@ -3,6 +3,7 @@ import api from "../utils/Axios";
 import { endpoints } from "../utils/endpoint";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import type { AxiosError } from "axios";
 
 interface IUser {
     name : string 
@@ -45,7 +46,12 @@ export default function Provider({children} : {children : React.ReactNode}){
                 // toast.error(response?.data?.message || "Failed to fetch user info");
             }
 
-        } catch (error: any) {
+
+        } catch (error : any) {
+            if(error?.status === 401){
+                localStorage.removeItem('token')
+                toast.error("Session is expired, Please login again!")
+            }
             setUser(null);
             // toast.error(error?.message || "Failed to fetch user info");
         }finally{

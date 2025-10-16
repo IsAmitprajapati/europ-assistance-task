@@ -5,8 +5,10 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import theme from './theme'
 import Provider from './context/Provider'
 import { Toaster } from 'react-hot-toast';
-import ProtectedRoutes from './component/ProtectedRoutes'
-
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 
 function App() {
 
@@ -20,7 +22,6 @@ function App() {
         {/**
          * checking the user has login or not
          */}
-        <ProtectedRoutes/>
     </Provider>
   )
 }

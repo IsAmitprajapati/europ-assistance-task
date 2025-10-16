@@ -9,7 +9,6 @@ import Sidebar from './Sidebar';
 import { drawerWidth } from '../constant';
 import { useProvider } from '../context/Provider';
 import { useEffect } from 'react';
-import ProtectedRoutes from '../component/ProtectedRoutes';
 
 // Main layout component with optimisation and fixes
 export default function DashboardLayout() {
@@ -56,7 +55,6 @@ export default function DashboardLayout() {
         <Outlet />
       </Box>
     </Box>
-    {/* <ProtectedRoutes/> */}
     </>
   );
 }

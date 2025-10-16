@@ -1,4 +1,4 @@
-import { Box, Button, Typography, CircularProgress, TextField, IconButton, InputAdornment } from "@mui/material";
+import { Box, Button, Typography, CircularProgress, TextField, IconButton, InputAdornment, Tooltip } from "@mui/material";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { ICustomer } from "../../types/customer";
@@ -38,6 +38,9 @@ export default function CustomerPage() {
     // Avoid unnecessary url update loop on first load
     const isFirstLoad = useRef(true);
 
+    //model this data
+    const [modelData, setModelData] = useState<string>("")
+
     // Update state when debounced input changes
     useEffect(() => {
         if (debouncedSearchInput.trim() !== search) {
@@ -67,7 +70,7 @@ export default function CustomerPage() {
         // eslint-disable-next-line
     }, [page, limit, search]);
 
-    
+
     // Refetch data when URL (location.search) changes
     useEffect(() => {
         const effectiveQuery = queryString.parse(location.search);
@@ -150,6 +153,58 @@ export default function CustomerPage() {
             field: 'payment_behavior',
             headerName: 'Payment Behavior',
             renderCell: (row) => row.payment_behavior ?? "-",
+        },
+        {
+            field: 'segment',
+            headerName: 'Segment',
+            renderCell: (row) => {
+
+                const text = row?.segment?.map((el: any) => el?.name as string).join(', ')
+                return (
+                    <Tooltip title="Click to view more">
+                        <Typography
+                            variant="inherit"
+                            sx={{
+                                maxWidth: 150,
+                                width: 150,
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                display: "block"
+                            }}
+                            onClick={() => setModelData(text as string)}
+                        >
+                            {text ?? "-"}
+                        </Typography>
+                    </Tooltip>
+                )
+            },
+        },
+        {
+            field: 'tags',
+            headerName: 'Tags',
+            renderCell: (row) => {
+
+                const text  = Array.isArray(row.tags) ? row?.tags.join(", ") : row.tags
+                return (
+                    <Tooltip title="Click to view more">
+                        <Typography
+                            variant="inherit"
+                            sx={{
+                                maxWidth: 150,
+                                width: 150,
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                display: "block"
+                            }}
+                            onClick={() => setModelData(text as string)}
+                        >
+                            { text ?? "-"}
+                        </Typography>
+                    </Tooltip>
+                )
+            },
         },
         {
             field: 'createdAt',

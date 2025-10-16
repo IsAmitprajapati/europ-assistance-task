@@ -24,13 +24,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Optional: Add a response interceptor (e.g. for global error handling)
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     // Handle or log error globally here.
-//     return Promise.reject(error);
-//   }
-// );
+// Add a response interceptor for global error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default api;
