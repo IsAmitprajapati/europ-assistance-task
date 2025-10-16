@@ -345,7 +345,7 @@ export const getCustomerList = async (req: Request, res: Response) => {
     const query = CustomerModel.find(filter)
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).populate('segment',"name");
 
     //promise
     const [customers, total] = await Promise.all([
