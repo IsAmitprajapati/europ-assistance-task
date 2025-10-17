@@ -4,5 +4,10 @@ export const endpoints = {
     user : "/auth/user",
     segment : "/segment",
     segmentWiseCustomer : (id : string)=> `/segment/customer/${id}`,
-    customer : "/customer"
+    customer : "/customer",
+    dashboard : "/dashboard",
+    policyDistribution : "/dashboard/policy-distribution",
+    revenues : "/dashboard/revenues",
+    customerAcquisition : "/dashboard/customer-acquisition",
+    claimPolicychart : "/dashboard/claim-policy-chart"
 }

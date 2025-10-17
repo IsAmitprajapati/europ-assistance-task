@@ -1,75 +1,189 @@
-import { Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  ToggleButton,
+  ToggleButtonGroup,
+  CircularProgress,
+} from "@mui/material";
 import { LineChart } from "@mui/x-charts";
-import React from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import type { DateRangeType } from "../Dashboard";
+import api from "../../../utils/Axios";
+import { endpoints } from "../../../utils/endpoint";
 
-// Example data for day, week, month, and year
-const revenueData = {
-  day: [
-    { label: "01", revenue: 750 },
-    { label: "02", revenue: 1035 },
-    { label: "03", revenue: 1200 },
-    { label: "04", revenue: 980 },
-    { label: "05", revenue: 1310 },
-    { label: "06", revenue: 900 },
-    { label: "07", revenue: 1090 },
-  ],
-  week: [
-    { label: "W1", revenue: 5600 },
-    { label: "W2", revenue: 6700 },
-    { label: "W3", revenue: 7150 },
-    { label: "W4", revenue: 7900 },
-    { label: "W5", revenue: 7800 },
-  ],
-  month: [
-    { label: "Jan", revenue: 12000 },
-    { label: "Feb", revenue: 14500 },
-    { label: "Mar", revenue: 13800 },
-    { label: "Apr", revenue: 16200 },
-    { label: "May", revenue: 17500 },
-    { label: "Jun", revenue: 18900 },
-    { label: "Jul", revenue: 17500 },
-    { label: "Aug", revenue: 17900 },
-    { label: "Sep", revenue: 19500 },
-    { label: "Oct", revenue: 21200 },
-    { label: "Nov", revenue: 20500 },
-    { label: "Dec", revenue: 22000 },
-  ],
-  year: [
-    { label: "2020", revenue: 145600 },
-    { label: "2021", revenue: 162400 },
-    { label: "2022", revenue: 174200 },
-    { label: "2023", revenue: 185000 },
-    { label: "2024", revenue: 199200 },
-  ],
-};
-
-function useRevenueChartData(type: "day" | "week" | "month" | "year") {
-  return React.useMemo(() => {
-    const data = revenueData[type];
-    return {
-      xLabels: data.map((d) => d.label),
-      yData: data.map((d) => d.revenue),
-    };
-  }, [type]);
+/**
+ * Props for the MonthlyRevenueChart component.
+ * - dateRange: Object containing 'from' and 'to' dates for filtering data.
+ * - loading: Controls global loading state (typically parent-controlled).
+ */
+interface IMonthlyRevenueChartProps {
+  dateRange: DateRangeType;
+  loading: boolean;
 }
 
-export default function MonthlyRevenueChat() {
-  const [chartType, setChartType] = React.useState<"day" | "week" | "month" | "year">("month");
-  const { xLabels, yData } = useRevenueChartData(chartType);
+/**
+ * Structure of revenue data used for the chart.
+ * - xLabels: The labels for the x-axis (dates, weeks, months, or years).
+ * - yData: Corresponding revenue number for each label.
+ */
+interface IRevenueData {
+  xLabels: string[];
+  yData: number[];
+}
 
+// Mapping chart type to human-readable label for UI.
+const labelMap: Record<"day" | "week" | "month" | "year", string> = {
+  day: "Day",
+  week: "Week",
+  month: "Month",
+  year: "Year",
+};
+
+/**
+ * Displays a revenue line chart with toggleable granularity (day/week/month/year)
+ * and fetches data when date range or granularity changes.
+ */
+export default function MonthlyRevenueChart({
+  dateRange,
+  loading,
+}: IMonthlyRevenueChartProps) {
+  // Current selected chart granularity type.
+  const [chartType, setChartType] = useState<"day" | "week" | "month" | "year">("day");
+
+  // State for chart data, initialized as empty.
+  const [data, setData] = useState<IRevenueData>({ xLabels: [], yData: [] });
+
+  // Local loading state for internal fetches.
+  const [fetchLoading, setFetchLoading] = useState<boolean>(false);
+
+  /**
+   * Fetch the revenue data for the selected date range and chart type.
+   * This is debounced by useCallback so it only changes when its deps change.
+   */
+  const fetchData = useCallback(async () => {
+    if (!dateRange?.from || !dateRange?.to) return;
+    setFetchLoading(true);
+    try {
+      const response = await api.get(endpoints.revenues, {
+        params: {
+            startDate: `${dateRange.from}T00:00:00Z`,  // Inclusive beginning of range
+            endDate: `${dateRange.to}T23:59:59Z`, 
+          type: chartType,
+        },
+      });
+      if (response.data && response.data.success) {
+        // Map API response to chart data.
+        const xLabels =
+          response.data.data?.map((d: any) => d.label) || [];
+        const yData =
+          response.data.data?.map((d: any) =>
+            typeof d.revenue === "number" ? d.revenue : 0
+          ) || [];
+        setData({ xLabels, yData });
+      } else {
+        setData({ xLabels: [], yData: [] });
+      }
+    } catch (error) {
+      // Optionally: show notification/toast for failed fetch.
+      setData({ xLabels: [], yData: [] });
+    } finally {
+      setFetchLoading(false);
+    }
+  }, [dateRange, chartType]);
+
+  /**
+   * Refetch revenue data whenever the date range or chart granularity changes.
+   */
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  /**
+   * Handler for changing the chart's granularity.
+   * Ignores unset (null) or redundant selection.
+   */
   const handleChartTypeChange = (
     event: React.MouseEvent<HTMLElement>,
     newType: "day" | "week" | "month" | "year" | null
   ) => {
-    if (newType) setChartType(newType);
+    if (newType && newType !== chartType) setChartType(newType);
   };
 
-  const labelMap = { day: "Day", week: "Week", month: "Month", year: "Year" };
+  // Show loader if parent loading or our fetch is in progress.
+  const isDisplayingLoader = loading || fetchLoading;
 
+  /**
+   * The chart component (or placeholder), memoized for render efficiency.
+   */ 
+  const lineChart = useMemo(() => {
+    // Only render chart if data exists, else render "no data" placeholder.
+    if (data.xLabels.length && data.yData.length) {
+      return (
+        <LineChart
+          xAxis={[
+            {
+              scaleType: "point",
+              data: data.xLabels,
+              label: labelMap[chartType],
+              tickLabelStyle: { fontSize: 12 },
+            },
+          ]}
+          series={[
+            {
+              data: data.yData,
+              color: "#1976d2",
+              label: "Revenue",
+              area: false,
+            },
+          ]}
+          yAxis={[
+            {
+              label: "Revenue (₹)",
+              min: 0,
+              tickLabelStyle: { fontSize: 12 },
+              valueFormatter: (value: number) => `₹${value.toLocaleString()}`,
+            },
+          ]}
+          height={280}
+          margin={{ top: 16, left: 44, right: 18, bottom: 42 }}
+          sx={{ ".MuiLineElement-root": { strokeWidth: 2 } }}
+        />
+      );
+    } else {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            height: "100%",
+            minHeight: { xs: 250, sm: 280, md: 300 },
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#a0a0a0",
+          }}
+        >
+          <Typography variant="body2">
+            No revenue data found for the selected range.
+          </Typography>
+        </Box>
+      );
+    }
+  }, [data, chartType]);
+
+  // Render the revenue chart card with all UI controls and chart/loader.
   return (
     <Card>
       <CardContent>
-        <Box sx={{ mb: 5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Header: title & chart granularity toggle */}
+        <Box
+          sx={{
+            mb: 5,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography
             gutterBottom
             variant="body1"
@@ -84,6 +198,7 @@ export default function MonthlyRevenueChat() {
             exclusive
             onChange={handleChartTypeChange}
             sx={{ ml: 2 }}
+            disabled={isDisplayingLoader}
           >
             <ToggleButton value="day">Day</ToggleButton>
             <ToggleButton value="week">Week</ToggleButton>
@@ -91,6 +206,8 @@ export default function MonthlyRevenueChat() {
             <ToggleButton value="year">Year</ToggleButton>
           </ToggleButtonGroup>
         </Box>
+
+        {/* Chart container: shows loader or the chart (or no-data placeholder) */}
         <Box
           sx={{
             minHeight: { xs: 250, sm: 280, md: 300 },
@@ -98,38 +215,25 @@ export default function MonthlyRevenueChat() {
             width: "100%",
             overflowX: "auto",
             py: 1,
+            position: "relative",
           }}
         >
-          <LineChart
-            xAxis={[
-              {
-                scaleType: "point",
-                data: xLabels,
-                label: labelMap[chartType],
-                tickLabelStyle: { fontSize: 12 },
-              },
-            ]}
-            series={[
-              {
-                data: yData,
-                color: "#1976d2",
-                label: "Revenue",
-                area: false,
-              },
-            ]}
-            yAxis={[
-              {
-                label: "Revenue (₹)",
-                min: 0,
-                tickLabelStyle: { fontSize: 12 },
-                valueFormatter: (value: number) =>
-                  `₹${value.toLocaleString()}`,
-              },
-            ]}
-            height={280}
-            margin={{ top: 16, left: 44, right: 18, bottom: 42 }}
-            sx={{ ".MuiLineElement-root": { strokeWidth: 2 } }}
-          />
+          {isDisplayingLoader ? (
+            <Box
+              sx={{
+                minHeight: { xs: 250, sm: 280, md: 300 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            lineChart
+          )}
         </Box>
       </CardContent>
     </Card>
