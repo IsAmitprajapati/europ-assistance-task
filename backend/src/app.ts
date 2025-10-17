@@ -12,6 +12,7 @@ import authRouter from './routes/auth.route';
 import segmentRouter from './routes/segment.route';
 import customerRouter from './routes/customer.route';
 import policyRouter from './routes/policy.route';
+import dashboardRouter from './routes/dashboard.route';
 
 
 const app = express()
@@ -37,8 +38,8 @@ const corsOptions: cors.CorsOptions = {
 
 // Rate Limiting Middleware
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // time frame = 15 minutes
-    max: 200,                 // max requests = 200 per IP in that time frame
+    windowMs: 15 * 60 * 5000, // time frame = 15 minutes
+    max: 500,                 // max requests = 200 per IP in that time frame
 });
 
 
@@ -63,6 +64,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/segment", segmentRouter); 
 app.use("/api/customer", customerRouter); 
 app.use("/api/policy", policyRouter)
+app.use("/api/dashboard",dashboardRouter)
 
 
 export default app;
